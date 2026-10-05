@@ -1,0 +1,102 @@
+-- التأكد من تشغيل البيئة الأساسية
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- إنشاء واجهة المستخدم الرئيسية
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ShiftLockTacos"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui")
+
+-- رسالة الترحيب "by mody" في منتصف الشاشة
+local IntroText = Instance.new("TextLabel")
+IntroText.Size = UDim2.new(0, 300, 0, 50)
+IntroText.Position = UDim2.new(0.5, -150, 0.3, -25)
+IntroText.BackgroundTransparency = 1
+IntroText.Text = "by mody"
+IntroText.TextColor3 = Color3.fromRGB(255, 170, 0) -- لون برتقالي مميز
+IntroText.TextSize = 34
+IntroText.Font = Enum.Font.SourceSansBold
+IntroText.TextTransparency = 1
+IntroText.Parent = ScreenGui
+
+-- تشغيل أغنية It's Raining Tacos عبر الـ ID الرسمي المعتمد في روبلوكس
+local IntroSound = Instance.new("Sound")
+IntroSound.SoundId = "rbxassetid://142376088" -- ID أغنية It's Raining Tacos
+IntroSound.Volume = 5
+IntroSound.Parent = SoundService
+
+-- دالة التشغيل المؤقت للمقدمة (10 ثواني)
+task.spawn(function()
+    pcall(function()
+        IntroSound:Play()
+    end)
+    
+    -- ظهور النص تدريجياً
+    for i = 1, 0, -0.1 do
+        IntroText.TextTransparency = i
+        task.wait(0.03)
+    end
+    
+    -- الانتظار لمدة 10 ثواني بالضبط
+    task.wait(10)
+    
+    -- إيقاف الأغنية وحذفها
+    pcall(function()
+        IntroSound:Stop()
+        IntroSound:Destroy()
+    end)
+    
+    -- اختفاء النص تدريجياً
+    for i = 0, 1, 0.1 do
+        IntroText.TextTransparency = i
+        task.wait(0.03)
+    end
+    IntroText:Destroy()
+end)
+
+-- زر الشفت لوك (قابل للسحب)
+local ShiftButton = Instance.new("TextButton")
+ShiftButton.Size = UDim2.new(0, 45, 0, 45)
+ShiftButton.Position = UDim2.new(0.88, 0, 0.52, 0)
+ShiftButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+ShiftButton.BackgroundTransparency = 0.5
+ShiftButton.Text = "🔒"
+ShiftButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ShiftButton.TextSize = 16
+ShiftButton.Active = true
+ShiftButton.Draggable = true
+ShiftButton.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = ShiftButton
+
+local isLocked = false
+
+-- التفعيل والإيقاف
+ShiftButton.MouseButton1Click:Connect(function()
+    isLocked = not isLocked
+    
+    if isLocked then
+        ShiftButton.BackgroundColor3 = Color3.fromRGB(255, 170, 0)
+        ShiftButton.BackgroundTransparency = 0.2
+        LocalPlayer.DevEnableMouseLock = true
+    else
+        ShiftButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        ShiftButton.BackgroundTransparency = 0.5
+        LocalPlayer.DevEnableMouseLock = false
+    end
+end)
+
+-- مزامنة حركة الكاميرا والشخصية للشفت لوك
+RunService.RenderStepped:Connect(function()
+    if isLocked and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = LocalPlayer.Character.HumanoidRootPart
+        local _, yRot, _ = Camera.CFrame:ToOrientation()
+        rootPart.CFrame = CFrame.new(rootPart.Position) * CFrame.Angles(0, yRot, 0)
+    end
+end)
