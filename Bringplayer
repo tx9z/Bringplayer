@@ -1,0 +1,83 @@
+-- التأكد من تشغيل البيئة الأساسية
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- إنشاء واجهة المستخدم (GUI) بحجم أصغر
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BringPlayerGuiSmall"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 160, 0, 110) -- حجم أصغر للواجهة
+MainFrame.Position = UDim2.new(0.5, -80, 0.4, -55)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- قابلة للسحب والتحريك
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 6)
+UICorner.Parent = MainFrame
+
+-- خانة الكتابة (TextBox) بأبعاد مصغرة
+local TextBox = Instance.new("TextBox")
+TextBox.Size = UDim2.new(0.85, 0, 0, 30)
+TextBox.Position = UDim2.new(0.075, 0, 0.15, 0)
+TextBox.PlaceholderText = "اكتب الاسم..."
+TextBox.Text = ""
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TextBox.TextSize = 12
+TextBox.Parent = MainFrame
+
+local TextBoxCorner = Instance.new("UICorner")
+TextBoxCorner.CornerRadius = UDim.new(0, 4)
+TextBoxCorner.Parent = TextBox
+
+-- زر السحب (Bring Button) بأبعاد مصغرة
+local BringButton = Instance.new("TextButton")
+BringButton.Size = UDim2.new(0.85, 0, 0, 30)
+BringButton.Position = UDim2.new(0.075, 0, 0.58, 0)
+BringButton.Text = "Bring"
+BringButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+BringButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+BringButton.TextSize = 14
+BringButton.Font = Enum.Font.SourceSansBold
+BringButton.Parent = MainFrame
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 4)
+ButtonCorner.Parent = BringButton
+
+-- دالة البحث عن اللاعب المطابق
+local function findPlayer(input)
+    input = string.lower(input)
+    if input == "" then return nil end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local playerName = string.lower(player.Name)
+            local playerDisplayName = string.lower(player.DisplayName)
+            
+            if string.sub(playerName, 1, #input) == input or string.sub(playerDisplayName, 1, #input) == input then
+                return player
+            end
+        end
+    end
+    return nil
+end
+
+-- حدث الضغط على الزر لتنفيذ السحب
+BringButton.MouseButton1Click:Connect(function()
+    local targetPlayer = findPlayer(TextBox.Text)
+    
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        
+        if myRoot then
+            targetPlayer.Character.HumanoidRootPart.CFrame = myRoot.CFrame + (myRoot.CFrame.LookVector * 3)
+        end
+    end
+end)
